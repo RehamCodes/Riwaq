@@ -7,6 +7,8 @@ export type MenuEntry =
   | {
       label: string;
       icon?: LucideIcon;
+      // Shows a color dot instead of an icon.
+      swatch?: string;
       onSelect: () => void;
       danger?: boolean;
       disabled?: boolean;
@@ -101,7 +103,12 @@ export function ContextMenu({
               item.danger ? "text-rose-600" : ""
             }`}
           >
-            {item.icon ? (
+            {item.swatch ? (
+              <span
+                className="size-3 shrink-0 rounded-sm ring-1 ring-slate-900/10"
+                style={{ backgroundColor: item.swatch }}
+              />
+            ) : item.icon ? (
               <item.icon className="size-4 shrink-0 opacity-70" />
             ) : (
               <span className="size-4 shrink-0" />

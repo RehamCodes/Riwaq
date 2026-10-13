@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { blobUrl } from "@/lib/blob-url";
 import {
   extensionOf,
   fileKind,
@@ -10,24 +11,7 @@ import {
   type SpaceItem,
 } from "./types";
 
-// Object URLs for image thumbnails, one per blob. Released when the file is
-// deleted (see releaseThumbnail).
-const thumbnailUrls = new WeakMap<Blob, string>();
-
-function thumbnailUrl(blob: Blob) {
-  let url = thumbnailUrls.get(blob);
-  if (!url) {
-    url = URL.createObjectURL(blob);
-    thumbnailUrls.set(blob, url);
-  }
-  return url;
-}
-
-export function releaseThumbnail(blob: Blob) {
-  const url = thumbnailUrls.get(blob);
-  if (url) URL.revokeObjectURL(url);
-  thumbnailUrls.delete(blob);
-}
+export { releaseBlobUrl as releaseThumbnail } from "@/lib/blob-url";
 
 export function FolderIcon({
   color,
@@ -90,7 +74,7 @@ function ImageThumbnail({ file, size }: { file: FileItem; size: number }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- local blob URL */}
       <img
-        src={thumbnailUrl(file.blob)}
+        src={blobUrl(file.blob)}
         alt=""
         draggable={false}
         onError={() => setBroken(true)}
