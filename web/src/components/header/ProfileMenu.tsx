@@ -1,92 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  ChevronDown,
-  Circle,
-  CircleCheck,
-  CircleMinus,
-  CircleX,
-  Clock,
-  LogOut,
-  MessageSquare,
-  Pencil,
-  type LucideIcon,
-} from "lucide-react";
-
-type Availability = "available" | "busy" | "dnd" | "brb" | "away" | "offline";
-
-const availabilityOptions: Record<
-  Availability,
-  { label: string; icon: LucideIcon; color: string; dot: string }
-> = {
-  available: {
-    label: "Available",
-    icon: CircleCheck,
-    color: "text-emerald-500",
-    dot: "bg-emerald-500",
-  },
-  busy: {
-    label: "Busy",
-    icon: Circle,
-    color: "text-rose-500 fill-rose-500",
-    dot: "bg-rose-500",
-  },
-  dnd: {
-    label: "Do not disturb",
-    icon: CircleMinus,
-    color: "text-rose-500",
-    dot: "bg-rose-500",
-  },
-  brb: {
-    label: "Be right back",
-    icon: Clock,
-    color: "text-amber-500",
-    dot: "bg-amber-500",
-  },
-  away: {
-    label: "Appear away",
-    icon: Clock,
-    color: "text-amber-500",
-    dot: "bg-amber-500",
-  },
-  offline: {
-    label: "Appear offline",
-    icon: CircleX,
-    color: "text-slate-400",
-    dot: "bg-slate-400",
-  },
-};
+import { ChevronDown, LogOut, MessageSquare, Pencil } from "lucide-react";
+import Avatar, {
+  availabilityOptions,
+  type Availability,
+} from "@/components/presence/Avatar";
 
 const STATUS_MESSAGE_MAX = 280;
 const HOVER_CLOSE_DELAY = 200;
-
-function Avatar({
-  initials,
-  availability,
-  size,
-}: {
-  initials: string;
-  availability: Availability;
-  size: "sm" | "lg";
-}) {
-  const { label, dot } = availabilityOptions[availability];
-  return (
-    <span
-      className={`relative flex shrink-0 items-center justify-center rounded-full bg-slate-700 font-semibold text-white ${
-        size === "sm" ? "size-9 text-sm" : "size-12 text-base"
-      }`}
-    >
-      {initials}
-      <span
-        aria-label={label}
-        className={`absolute -right-0.5 -bottom-0.5 rounded-full ring-2 ring-white ${dot} ${
-          size === "sm" ? "size-3" : "size-3.5"
-        }`}
-      />
-    </span>
-  );
-}
 
 export default function ProfileMenu({
   userName,
@@ -107,12 +29,6 @@ export default function ProfileMenu({
   // Opened by a click/tap rather than hover: stays open when the pointer leaves.
   const pinned = useRef(false);
 
-  const initials = userName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
   const current = availabilityOptions[availability];
 
   function openMenu() {
@@ -183,7 +99,7 @@ export default function ProfileMenu({
         }}
         className="flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
       >
-        <Avatar initials={initials} availability={availability} size="sm" />
+        <Avatar name={userName} availability={availability} size="sm" />
       </button>
 
       {open && (
@@ -196,11 +112,7 @@ export default function ProfileMenu({
             className="rounded-xl border border-slate-200 bg-white text-sm text-slate-700 shadow-lg"
           >
             <div className="flex items-center gap-3 p-4">
-              <Avatar
-                initials={initials}
-                availability={availability}
-                size="lg"
-              />
+              <Avatar name={userName} availability={availability} size="lg" />
               <div className="min-w-0">
                 <p className="truncate font-semibold">{userName}</p>
                 {userEmail && (
