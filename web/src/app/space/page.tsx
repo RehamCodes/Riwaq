@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import SpaceFinder from "@/components/space/SpaceFinder";
 
 export const metadata: Metadata = {
   title: "Space",
 };
 
 export default function SpacePage() {
-  return <h1 className="text-2xl font-semibold text-slate-700">Space</h1>;
+  return <SpaceFinder />;
 }
