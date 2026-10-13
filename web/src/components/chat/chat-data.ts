@@ -4,9 +4,37 @@ export type Contact = {
   id: string;
   name: string;
   role: string;
+  kind: "teacher" | "student";
   availability: Availability;
   color: string; // avatar background class
+  // Shown on the profile card when hovering the avatar.
+  workingHours: string;
+  lastSeen: string; // used when not available, e.g. "2 hours ago"
+  email?: string;
+  phone?: string;
+  parent?: PhoneContact;
+  driver?: PhoneContact & { bus?: string };
 };
+
+export type PhoneContact = { name: string; phone: string };
+
+// A report or complaint about a student, filed from their profile card.
+export type StudentReport = {
+  type: "report" | "complaint";
+  category: string;
+  details: string;
+  notifyParent: boolean;
+};
+
+// Reports aren't sent anywhere yet; this is the confirmation shown for now.
+export function reportSentMessage(report: StudentReport) {
+  const what = report.type === "report" ? "Report" : "Complaint";
+  return report.notifyParent
+    ? `${what} sent · parent notified`
+    : `${what} sent`;
+}
+
+const SCHOOL_HOURS = "Sun–Thu, 7:30 AM – 2:30 PM";
 
 export type Message = {
   id: string;
@@ -42,8 +70,13 @@ export const initialChats: Chat[] = [
       id: "khaled",
       name: "Mr. Khaled Mansour",
       role: "Mathematics teacher",
+      kind: "teacher",
       availability: "available",
       color: "bg-indigo-500",
+      workingHours: SCHOOL_HOURS,
+      lastSeen: "Just now",
+      email: "k.mansour@riwaq.edu",
+      phone: "+962 79 555 0142",
     },
     unread: true,
     muted: false,
@@ -109,8 +142,13 @@ export const initialChats: Chat[] = [
       id: "huda",
       name: "Ms. Huda Saleh",
       role: "Arabic Language teacher",
+      kind: "teacher",
       availability: "busy",
       color: "bg-emerald-600",
+      workingHours: SCHOOL_HOURS,
+      lastSeen: "10 minutes ago",
+      email: "h.saleh@riwaq.edu",
+      phone: "+962 79 555 0187",
     },
     unread: false,
     muted: false,
@@ -154,8 +192,12 @@ export const initialChats: Chat[] = [
       id: "omar",
       name: "Mr. Omar Haddad",
       role: "Science teacher",
+      kind: "teacher",
       availability: "away",
       color: "bg-amber-500",
+      workingHours: "Sun–Thu, 8:00 AM – 1:30 PM",
+      lastSeen: "1 hour ago",
+      email: "o.haddad@riwaq.edu",
     },
     unread: false,
     muted: true,
@@ -215,8 +257,13 @@ export const initialChats: Chat[] = [
       id: "sara",
       name: "Ms. Sara Nabil",
       role: "English & Computer Science teacher",
+      kind: "teacher",
       availability: "dnd",
       color: "bg-sky-500",
+      workingHours: SCHOOL_HOURS,
+      lastSeen: "25 minutes ago",
+      email: "s.nabil@riwaq.edu",
+      phone: "+962 79 555 0133",
     },
     unread: true,
     muted: false,
@@ -237,8 +284,12 @@ export const initialChats: Chat[] = [
       id: "lina",
       name: "Ms. Lina Farouk",
       role: "Art teacher",
+      kind: "teacher",
       availability: "offline",
       color: "bg-violet-500",
+      workingHours: "Sun, Tue, Thu, 9:00 AM – 12:00 PM",
+      lastSeen: "Yesterday at 6:10 PM",
+      email: "l.farouk@riwaq.edu",
     },
     unread: false,
     muted: false,
@@ -258,6 +309,68 @@ export const initialChats: Chat[] = [
         text: "Yes, a clear photo in good light is perfect.",
         day: "Last week",
         time: "5:22 PM",
+      },
+    ],
+  },
+  {
+    contact: {
+      id: "yousef",
+      name: "Yousef Ali",
+      role: "Grade 8 student",
+      kind: "student",
+      availability: "available",
+      color: "bg-rose-500",
+      workingHours: SCHOOL_HOURS,
+      lastSeen: "Just now",
+      email: "yousef.ali@students.riwaq.edu",
+      parent: { name: "Ahmad Ali (father)", phone: "+962 79 555 0101" },
+      driver: { name: "Sami Odeh", phone: "+962 79 555 0420", bus: "Bus 7" },
+    },
+    unread: false,
+    muted: false,
+    notes: "",
+    files: [],
+    messages: [
+      {
+        id: "m1",
+        from: "them",
+        text: "Miss, I'll be late tomorrow — the bus changed its route.",
+        day: "Today",
+        time: "7:05 AM",
+      },
+    ],
+  },
+  {
+    contact: {
+      id: "mariam",
+      name: "Mariam Adel",
+      role: "Grade 7 student",
+      kind: "student",
+      availability: "offline",
+      color: "bg-teal-600",
+      workingHours: SCHOOL_HOURS,
+      lastSeen: "3 hours ago",
+      parent: { name: "Noor Adel (mother)", phone: "+962 79 555 0166" },
+      driver: { name: "Fadi Khoury", phone: "+962 79 555 0433", bus: "Bus 3" },
+    },
+    unread: false,
+    muted: false,
+    notes: "",
+    files: [],
+    messages: [
+      {
+        id: "m1",
+        from: "me",
+        text: "Please remind your mother about the parent–teacher meeting on Thursday.",
+        day: "Monday",
+        time: "11:20 AM",
+      },
+      {
+        id: "m2",
+        from: "them",
+        text: "I will, thank you!",
+        day: "Monday",
+        time: "12:02 PM",
       },
     ],
   },

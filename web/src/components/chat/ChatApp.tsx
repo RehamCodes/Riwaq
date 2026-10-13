@@ -6,7 +6,8 @@ import { BellOff, MessagesSquare, Search } from "lucide-react";
 import Avatar from "@/components/presence/Avatar";
 import { ResizeHandle } from "@/components/ui";
 import Conversation from "./Conversation";
-import { initialChats, type Chat } from "./chat-data";
+import ProfileHoverCard from "./ProfileCard";
+import { initialChats, reportSentMessage, type Chat } from "./chat-data";
 
 // Chat list width on desktop, adjustable by dragging its right border.
 const LIST_WIDTH = { default: 320, min: 240, max: 480 };
@@ -24,6 +25,8 @@ export default function ChatApp() {
   const [filter, setFilter] = useState("");
   const [listWidth, setListWidth] = useState(LIST_WIDTH.default);
   const [toast, setToast] = useState<string | null>(null);
+  // The chat with an active audio call, if any.
+  const [callingId, setCallingId] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const selected = chats.find((c) => c.contact.id === selectedId) ?? null;
@@ -38,6 +41,7 @@ export default function ChatApp() {
   }
 
   function open(id: string) {
+    if (id !== callingId) setCallingId(null);
     update(id, { unread: false });
     // Keeps the open chat in the URL, so links and Back work.
     window.history.pushState(null, "", `?chat=${id}`);
@@ -118,12 +122,22 @@ export default function ChatApp() {
                     active ? "bg-slate-100" : "hover:bg-slate-50"
                   }`}
                 >
-                  <Avatar
-                    name={chat.contact.name}
-                    availability={chat.contact.availability}
-                    size="md"
-                    className={chat.contact.color}
-                  />
+                  <ProfileHoverCard
+                    contact={chat.contact}
+                    onChat={() => open(chat.contact.id)}
+                    onCall={() => {
+                      open(chat.contact.id);
+                      setCallingId(chat.contact.id);
+                    }}
+                    onReport={(report) => showToast(reportSentMessage(report))}
+                  >
+                    <Avatar
+                      name={chat.contact.name}
+                      availability={chat.contact.availability}
+                      size="md"
+                      className={chat.contact.color}
+                    />
+                  </ProfileHoverCard>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <span
@@ -181,7 +195,14 @@ export default function ChatApp() {
         <Conversation
           key={selected.contact.id}
           chat={selected}
-          onBack={() => window.history.pushState(null, "", "/chats")}
+          onBack={() => {
+            setCallingId(null);
+            window.history.pushState(null, "", "/chats");
+          }}
+          inCall={callingId === selected.contact.id}
+          onCallChange={(calling) =>
+            setCallingId(calling ? selected.contact.id : null)
+          }
           onSend={(text) => send(selected.contact.id, text)}
           onUpdate={(change) => update(selected.contact.id, change)}
           onToast={showToast}

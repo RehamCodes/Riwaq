@@ -26,7 +26,15 @@ import { NewClassDialog } from "@/components/calendar/dialogs";
 import { addEvent } from "@/components/calendar/calendar-store";
 import { nextHalfHour } from "@/components/calendar/date-utils";
 import CallOverlay from "./CallOverlay";
-import { linksIn, type Chat, type Message, type SharedFile } from "./chat-data";
+import ProfileHoverCard from "./ProfileCard";
+import {
+  linksIn,
+  reportSentMessage,
+  type Chat,
+  type Message,
+  type SharedFile,
+  type StudentReport,
+} from "./chat-data";
 
 type Tab = "chat" | "shared" | "notes";
 
@@ -92,12 +100,16 @@ const fileIcons: Record<
 export default function Conversation({
   chat,
   onBack,
+  inCall,
+  onCallChange,
   onSend,
   onUpdate,
   onToast,
 }: {
   chat: Chat;
   onBack: () => void;
+  inCall: boolean;
+  onCallChange: (inCall: boolean) => void;
   onSend: (text: string) => void;
   onUpdate: (change: Partial<Chat>) => void;
   onToast: (text: string) => void;
@@ -113,12 +125,12 @@ export default function Conversation({
   const [matchIndex, setMatchIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [meetingStart, setMeetingStart] = useState<Date | null>(null);
-  const [inCall, setInCall] = useState(false);
   const [screen, setScreen] = useState<MediaStream | null>(null);
   const [draft, setDraft] = useState("");
 
   const menuRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const screenRef = useRef<MediaStream | null>(null);
 
   const trimmedQuery = query.trim();
@@ -194,7 +206,7 @@ export default function Conversation({
 
   function endCall() {
     stopSharing();
-    setInCall(false);
+    onCallChange(false);
   }
 
   async function copyLink() {
@@ -205,6 +217,17 @@ export default function Conversation({
     } catch {
       onToast("Couldn't copy the link");
     }
+  }
+
+  function focusComposer() {
+    closeFind();
+    setTab("chat");
+    // The composer only exists on the Chat tab, so wait for it to render.
+    requestAnimationFrame(() => composerRef.current?.focus());
+  }
+
+  function sendReport(report: StudentReport) {
+    onToast(reportSentMessage(report));
   }
 
   function openFind() {
@@ -279,12 +302,20 @@ export default function Conversation({
           <ArrowLeft className="size-5" />
         </button>
         <div className="flex min-w-0 items-center gap-3 pb-2.5">
-          <Avatar
-            name={contact.name}
-            availability={contact.availability}
-            size="md"
-            className={contact.color}
-          />
+          <ProfileHoverCard
+            contact={contact}
+            onChat={focusComposer}
+            onCall={() => onCallChange(true)}
+            onReport={sendReport}
+            openOnClick
+          >
+            <Avatar
+              name={contact.name}
+              availability={contact.availability}
+              size="md"
+              className={contact.color}
+            />
+          </ProfileHoverCard>
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 truncate font-semibold text-slate-800">
               {contact.name}
@@ -325,7 +356,7 @@ export default function Conversation({
         <div className="ml-auto flex items-center gap-0.5 pb-2.5">
           <button
             type="button"
-            onClick={() => setInCall(true)}
+            onClick={() => onCallChange(true)}
             aria-label={`Audio call ${contact.name}`}
             title="Audio call"
             className={iconButton}
@@ -439,12 +470,16 @@ export default function Conversation({
             query={trimmedQuery}
             activeId={activeMatch?.id}
             endRef={endRef}
+            onChat={focusComposer}
+            onCall={() => onCallChange(true)}
+            onReport={sendReport}
           />
           <form
             onSubmit={submit}
             className="flex items-end gap-2 border-t border-slate-200 p-3 md:px-5"
           >
             <textarea
+              ref={composerRef}
               rows={1}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -518,11 +553,17 @@ function MessageList({
   query,
   activeId,
   endRef,
+  onChat,
+  onCall,
+  onReport,
 }: {
   chat: Chat;
   query: string;
   activeId?: string;
   endRef: React.Ref<HTMLDivElement>;
+  onChat: () => void;
+  onCall: () => void;
+  onReport: (report: StudentReport) => void;
 }) {
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 md:px-5">
@@ -547,11 +588,19 @@ function MessageList({
               {!mine && (
                 <span className="w-8 shrink-0">
                   {!grouped && (
-                    <Avatar
-                      name={chat.contact.name}
-                      size="xs"
-                      className={chat.contact.color}
-                    />
+                    <ProfileHoverCard
+                      contact={chat.contact}
+                      onChat={onChat}
+                      onCall={onCall}
+                      onReport={onReport}
+                      openOnClick
+                    >
+                      <Avatar
+                        name={chat.contact.name}
+                        size="xs"
+                        className={chat.contact.color}
+                      />
+                    </ProfileHoverCard>
                   )}
                 </span>
               )}
