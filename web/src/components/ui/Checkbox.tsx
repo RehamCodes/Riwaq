@@ -7,7 +7,7 @@ export function Checkbox({
 }) {
   return (
     <label className={`flex items-center gap-2 text-sm ${className}`}>
-      <input type="checkbox" className="size-4 accent-[#3f5068]" {...props} />
+      <input type="checkbox" className="size-4 accent-brand" {...props} />
       {label}
     </label>
   );

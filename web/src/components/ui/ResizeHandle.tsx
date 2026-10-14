@@ -104,7 +104,7 @@ export function ResizeHandle({
       } ${className}`}
     >
       <span
-        className={`absolute transition-colors group-hover:bg-[#3f5068]/50 group-focus-visible:bg-[#3f5068] group-active:bg-[#3f5068] ${
+        className={`absolute transition-colors group-hover:bg-brand/50 group-focus-visible:bg-brand group-active:bg-brand ${
           vertical
             ? "inset-y-0 left-1/2 w-0.5 -translate-x-1/2"
             : "inset-x-0 top-1/2 h-0.5 -translate-y-1/2"

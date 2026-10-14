@@ -233,7 +233,7 @@ export default function BagApp() {
       title="Bookshelf"
       className={`rounded-md p-1.5 transition-colors ${
         shelfVisible
-          ? "bg-slate-100 text-[#3f5068]"
+          ? "bg-brand-soft text-brand"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
       }`}
     >

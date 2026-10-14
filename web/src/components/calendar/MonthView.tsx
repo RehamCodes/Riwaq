@@ -56,7 +56,7 @@ export default function MonthView({
                   aria-label={day.toDateString()}
                   className={`mb-0.5 flex size-7 items-center justify-center self-start rounded-full text-sm hover:bg-slate-100 ${
                     today
-                      ? "bg-[#3f5068] font-semibold text-white hover:bg-[#3f5068]"
+                      ? "bg-brand font-semibold text-white hover:bg-brand"
                       : inMonth
                         ? "text-slate-700"
                         : "text-slate-400"

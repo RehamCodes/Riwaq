@@ -2,7 +2,7 @@ type Variant = "primary" | "ghost" | "danger" | "destructive";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-[#3f5068] font-medium text-white hover:bg-[#34445a] disabled:hover:bg-[#3f5068]",
+    "bg-brand font-medium text-white hover:bg-brand-hover disabled:hover:bg-brand",
   ghost: "text-slate-600 hover:bg-slate-100",
   danger: "text-rose-600 hover:bg-rose-50",
   // Solid red, for confirming a destructive action.

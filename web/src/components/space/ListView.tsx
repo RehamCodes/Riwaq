@@ -18,6 +18,7 @@ export default function ListView({
   items,
   selectedId,
   renamingId,
+  renderBadge,
   onSelect,
   onOpen,
   onRename,
@@ -27,6 +28,7 @@ export default function ListView({
   items: SpaceItem[];
   selectedId: string | null;
   renamingId: string | null;
+  renderBadge?: (item: SpaceItem) => React.ReactNode;
   onSelect: (id: string | null) => void;
   onOpen: (item: SpaceItem) => void;
   onRename: (id: string, name: string) => void;
@@ -78,7 +80,7 @@ export default function ListView({
                 }}
                 className={`cursor-default select-none ${
                   selected
-                    ? "bg-[#3f5068] text-white"
+                    ? "bg-brand text-white"
                     : i % 2
                       ? "bg-slate-50/70 text-slate-700"
                       : "text-slate-700"
@@ -103,6 +105,7 @@ export default function ListView({
                         {item.name}
                       </button>
                     )}
+                    {renderBadge?.(item)}
                   </div>
                 </td>
                 <td

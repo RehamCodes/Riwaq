@@ -13,7 +13,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body className="h-dvh bg-slate-100">{children}</body>
+      <body className="h-dvh bg-paper">{children}</body>
     </html>
   );
 }

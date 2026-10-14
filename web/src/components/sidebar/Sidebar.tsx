@@ -16,7 +16,7 @@ import { isActive, navItems } from "./nav-items";
 const itemBase =
   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors";
 const itemIdle = "text-slate-100 hover:bg-white/10";
-const itemActive = "bg-white text-slate-700 shadow-sm";
+const itemActive = "bg-white text-brand shadow-sm";
 
 function NavLink({
   href,
@@ -108,14 +108,14 @@ export default function Sidebar() {
         collapsed ? "w-24" : "w-64"
       }`}
     >
-      <div className="flex h-full flex-col rounded-2xl bg-[#3f5068] p-3 text-white">
+      <div className="flex h-full flex-col rounded-2xl bg-brand p-3 text-white">
         <div
           className={`flex items-center gap-2 px-2 py-3 ${
             collapsed ? "flex-col" : "justify-between"
           }`}
         >
           <div className="flex items-center gap-2">
-            <School className="size-6 shrink-0 text-amber-300" />
+            <School className="size-6 shrink-0 text-gold" />
             {!collapsed && (
               <span className="text-lg font-bold tracking-wide">SCHOOL</span>
             )}

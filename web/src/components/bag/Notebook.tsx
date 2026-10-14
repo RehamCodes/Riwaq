@@ -230,7 +230,7 @@ export default function Notebook({
 
   const toolButton = (on: boolean) =>
     `flex size-8 shrink-0 items-center justify-center rounded-md transition-colors ${
-      on ? "bg-[#3f5068] text-white" : "text-slate-600 hover:bg-slate-100"
+      on ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-100"
     }`;
 
   return (
@@ -245,7 +245,7 @@ export default function Notebook({
         }}
       >
         <h2 className="mr-2 flex shrink-0 items-center gap-1.5 text-sm font-semibold text-slate-700">
-          <NotebookPen className="size-4 text-[#3f5068]" />
+          <NotebookPen className="size-4 text-brand" />
           Notebook
         </h2>
         {formats.map(({ value, label, key, icon: Icon }) => (

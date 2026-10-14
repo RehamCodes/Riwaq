@@ -98,7 +98,7 @@ export default function ProfileMenu({
           pinned.current = true;
           openMenu();
         }}
-        className="flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+        className="flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <Avatar name={userName} availability={availability} size="sm" />
       </button>

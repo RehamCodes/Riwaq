@@ -119,7 +119,7 @@ export default function ChatApp() {
                   onClick={() => open(chat.contact.id)}
                   aria-current={active ? "true" : undefined}
                   className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left ${
-                    active ? "bg-slate-100" : "hover:bg-slate-50"
+                    active ? "bg-brand-soft" : "hover:bg-slate-50"
                   }`}
                 >
                   <ProfileHoverCard

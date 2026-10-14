@@ -1,5 +1,6 @@
 import {
   Activity,
+  Award,
   Backpack,
   BookOpen,
   ClipboardCheck,
@@ -35,6 +36,7 @@ export const navItems: NavItem[] = [
   // Assessment & tracking
   { label: "Exams", href: "/exams", icon: ClipboardList },
   { label: "Assessment", href: "/assessment", icon: ClipboardCheck },
+  { label: "Certificates", href: "/certificates", icon: Award },
   { label: "Attendance", href: "/attendance", icon: UserCheck },
   { label: "Chats", href: "/chats", icon: MessagesSquare },
   // People & admin
