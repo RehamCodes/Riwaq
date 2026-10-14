@@ -37,7 +37,7 @@ function Tab({
     >
       <span
         className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
-          active ? "bg-white/20" : ""
+          active ? "bg-gold text-brand" : ""
         }`}
       >
         <Icon className="size-5" strokeWidth={1.75} />
@@ -87,7 +87,7 @@ function ActiveTabList() {
 
 export default function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 bg-[#3f5068] pb-[env(safe-area-inset-bottom)] md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-20 bg-brand pb-[env(safe-area-inset-bottom)] md:hidden">
       <Suspense fallback={<TabList pathname={null} />}>
         <ActiveTabList />
       </Suspense>

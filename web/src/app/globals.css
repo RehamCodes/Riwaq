@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+/* School palette: oxford navy and crest gold on warm paper.
+   Use as bg-brand, text-brand, bg-gold, bg-paper, etc. */
+@theme {
+  --color-brand: #1f3a68;
+  --color-brand-hover: #172d52;
+  --color-brand-light: #3d5d93;
+  --color-brand-muted: #a3b4cf;
+  --color-brand-soft: #e6ecf5;
+
+  --color-gold: #f0b429;
+  --color-gold-soft: #fdf4dc;
+
+  --color-paper: #f4f2ec;
+}

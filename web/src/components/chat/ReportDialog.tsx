@@ -63,13 +63,13 @@ export default function ReportDialog({
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
         <fieldset>
           <legend className="sr-only">Type</legend>
-          <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-brand-soft p-1">
             {types.map((t) => (
               <label
                 key={t.value}
-                className={`cursor-pointer rounded-md px-3 py-1.5 text-center font-medium has-focus-visible:outline-2 has-focus-visible:outline-slate-400 ${
+                className={`cursor-pointer rounded-md px-3 py-1.5 text-center font-medium has-focus-visible:outline-2 has-focus-visible:outline-brand ${
                   type === t.value
-                    ? "bg-white text-slate-800 shadow-sm"
+                    ? "bg-white text-brand shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >

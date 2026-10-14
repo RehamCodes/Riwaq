@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import ExamsFinder from "@/components/exams/ExamsFinder";
 
 export const metadata: Metadata = {
   title: "Exams",
 };
 
 export default function ExamsPage() {
-  return <h1 className="text-2xl font-semibold text-slate-700">Exams</h1>;
+  return <ExamsFinder />;
 }

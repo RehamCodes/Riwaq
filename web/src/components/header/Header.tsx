@@ -14,7 +14,7 @@ export default function Header({ userName = "User" }: { userName?: string }) {
           name="q"
           placeholder="Search for students/teachers/documents..."
           aria-label="Search"
-          className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+          className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand focus:outline-none"
         />
       </form>
 

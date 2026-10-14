@@ -107,14 +107,14 @@ export default function TimeGridView({
                 >
                   <span
                     className={`text-2xl font-semibold ${
-                      today ? "text-[#3f5068]" : "text-slate-700"
+                      today ? "text-brand" : "text-slate-700"
                     }`}
                   >
                     {day.getDate()}
                   </span>
                   <span
                     className={`text-sm ${
-                      today ? "font-semibold text-[#3f5068]" : "text-slate-500"
+                      today ? "font-semibold text-brand" : "text-slate-500"
                     }`}
                   >
                     {weekdayShort(day)}
@@ -131,7 +131,7 @@ export default function TimeGridView({
             {days.map((day) => (
               <div
                 key={day.toISOString()}
-                className={`h-0.5 ${isSameDay(day, now) ? "bg-[#3f5068]" : ""}`}
+                className={`h-0.5 ${isSameDay(day, now) ? "bg-brand" : ""}`}
               />
             ))}
           </div>
@@ -219,7 +219,7 @@ export default function TimeGridView({
                           </span>
                         )}
                         {joinable && height >= 44 && (
-                          <span className="mt-auto inline-flex w-fit items-center gap-1 rounded bg-[#3f5068] px-1.5 py-0.5 text-[11px] font-medium text-white">
+                          <span className="mt-auto inline-flex w-fit items-center gap-1 rounded bg-brand px-1.5 py-0.5 text-[11px] font-medium text-white">
                             <Video className="size-3" />
                             Join
                           </span>

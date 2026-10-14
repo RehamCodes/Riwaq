@@ -35,6 +35,9 @@ export default function IconCanvas({
   selectedId,
   renamingId,
   iconSize,
+  readOnly = false,
+  emptyHint = "Drop files here or use Upload",
+  renderBadge,
   scrollRef,
   onSelect,
   onOpen,
@@ -49,6 +52,10 @@ export default function IconCanvas({
   selectedId: string | null;
   renamingId: string | null;
   iconSize: number;
+  // Icons can be opened but not dragged.
+  readOnly?: boolean;
+  emptyHint?: string;
+  renderBadge?: (item: SpaceItem) => React.ReactNode;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   onSelect: (id: string | null) => void;
   onOpen: (item: SpaceItem) => void;
@@ -105,7 +112,7 @@ export default function IconCanvas({
   function onPointerDown(e: React.PointerEvent, item: SpaceItem) {
     if (e.button !== 0 || renamingId === item.id) return;
     onSelect(item.id);
-    if (compact) return;
+    if (compact || readOnly) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     start.current = {
       id: item.id,
@@ -209,11 +216,11 @@ export default function IconCanvas({
                 aria-label={`${item.name}, ${kind}`}
                 aria-pressed={selected}
                 onFocus={() => onSelect(item.id)}
-                className={`rounded-lg p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-sky-400 ${
+                className={`rounded-lg p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-brand ${
                   isTarget
-                    ? "bg-sky-200/70 ring-2 ring-sky-400"
+                    ? "bg-brand-soft ring-2 ring-brand-light"
                     : selected
-                      ? "bg-slate-900/10"
+                      ? "bg-brand/10"
                       : ""
                 }`}
               >
@@ -229,12 +236,13 @@ export default function IconCanvas({
               ) : (
                 <span
                   className={`line-clamp-2 max-w-full rounded px-1.5 text-center text-xs leading-snug break-words ${
-                    selected ? "bg-[#3f5068] text-white" : "text-slate-700"
+                    selected ? "bg-brand text-white" : "text-slate-700"
                   }`}
                 >
                   {item.name}
                 </span>
               )}
+              {renderBadge?.(item)}
             </div>
           );
         })}
@@ -243,7 +251,7 @@ export default function IconCanvas({
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
             <FolderOpen className="size-10" strokeWidth={1.25} />
             <p className="text-sm">This folder is empty</p>
-            <p className="text-xs">Drop files here or use Upload</p>
+            {emptyHint && <p className="text-xs">{emptyHint}</p>}
           </div>
         )}
       </div>

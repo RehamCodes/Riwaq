@@ -135,7 +135,7 @@ export default function ProfileHoverCard({
             pinned.current = true;
             show();
           }}
-          className="flex shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+          className="flex shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           {...triggerProps}
         >
           {children}
@@ -336,7 +336,7 @@ function ProfileCard({
               <InfoRow icon={Mail} label="Email">
                 <a
                   href={`mailto:${contact.email}`}
-                  className="break-all text-sky-700 hover:underline"
+                  className="break-all text-brand hover:underline"
                 >
                   {contact.email}
                 </a>
@@ -413,7 +413,7 @@ function PhoneLink({ phone }: { phone: string }) {
   return (
     <a
       href={`tel:${phone.replace(/\s/g, "")}`}
-      className="text-sky-700 hover:underline"
+      className="text-brand hover:underline"
     >
       {phone}
     </a>

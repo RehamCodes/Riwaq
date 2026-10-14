@@ -17,6 +17,7 @@ import {
   Search,
   Trash2,
   Upload,
+  type LucideIcon,
 } from "lucide-react";
 import {
   Button,
@@ -26,7 +27,7 @@ import {
   ResizeHandle,
   type MenuEntry,
 } from "@/components/ui";
-import { deleteItems, loadSpace, markSeeded, saveItems } from "./space-db";
+import { spaceStore, type ItemStore } from "./space-db";
 import { FolderIcon, releaseThumbnail } from "./icons";
 import IconCanvas from "./IconCanvas";
 import ListView from "./ListView";
@@ -69,7 +70,59 @@ function isTyping(target: EventTarget | null) {
   );
 }
 
-export default function SpaceFinder() {
+const always = () => true;
+const never = () => false;
+
+// Lets other pages (e.g. Exams) reuse the Finder with their own storage and
+// rules. Without options it is the user's Space.
+export type FinderOptions = {
+  store?: ItemStore;
+  rootName?: string;
+  rootIcon?: LucideIcon;
+  // Items for a first visit. Should be a stable (module-level) function.
+  seed?: (now: number) => SpaceItem[];
+  // Items can be opened but not added, changed or deleted.
+  readOnly?: boolean;
+  // Hidden items are left out everywhere, and a hidden folder can't be open.
+  // `items` is everything, hidden or not, e.g. to look up parent folders.
+  isVisible?: (item: SpaceItem, items: SpaceItem[]) => boolean;
+  // Can't be renamed, customized, moved to another folder or deleted.
+  isProtected?: (item: SpaceItem) => boolean;
+  // Where folders and files may be added; null is the top level.
+  canAddTo?: (folderId: string | null) => boolean;
+  // Return true when the item was handled, to skip the default open;
+  // `proceed` runs the default open later (e.g. after a confirmation).
+  onOpen?: (
+    item: SpaceItem,
+    items: SpaceItem[],
+    proceed: () => void,
+  ) => boolean;
+  onDeleted?: (ids: string[]) => void;
+  // Extra entries for an item's menu.
+  itemMenu?: (item: SpaceItem) => MenuEntry[];
+  // Small label shown under an item's name, e.g. its access.
+  renderBadge?: (item: SpaceItem) => React.ReactNode;
+  // Shown above the items, for the open folder and its parents.
+  renderBanner?: (path: FolderItem[]) => React.ReactNode;
+  toolbar?: React.ReactNode;
+};
+
+export default function SpaceFinder({
+  store = spaceStore,
+  rootName = "My Space",
+  rootIcon: RootIcon = Orbit,
+  seed = sampleFolders,
+  readOnly = false,
+  isVisible = always,
+  isProtected = never,
+  canAddTo = always,
+  onOpen,
+  onDeleted,
+  itemMenu: extraItemMenu,
+  renderBadge,
+  renderBanner,
+  toolbar,
+}: FinderOptions = {}) {
   const [items, setItems] = useState<SpaceItem[] | null>(null);
   const [storageOk, setStorageOk] = useState(true);
   const [history, setHistory] = useState<(string | null)[]>([null]);
@@ -91,19 +144,18 @@ export default function SpaceFinder() {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const keyHandler = useRef<(e: KeyboardEvent) => void>(() => {});
 
-  const currentId = history[historyIndex];
-
   // Load the Space from browser storage; first visit gets starter folders.
   useEffect(() => {
     let cancelled = false;
-    loadSpace()
+    store
+      .load()
       .then(async ({ items, seeded }) => {
         if (cancelled) return;
         if (!seeded && items.length === 0) {
-          const starter = sampleFolders(timestamp());
+          const starter = seed(timestamp());
           setItems(starter);
-          await saveItems(starter);
-          await markSeeded();
+          await store.save(starter);
+          await store.markSeeded();
         } else {
           setItems(items);
         }
@@ -111,12 +163,12 @@ export default function SpaceFinder() {
       .catch(() => {
         if (cancelled) return;
         setStorageOk(false);
-        setItems(sampleFolders(timestamp()));
+        setItems(seed(timestamp()));
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [store, seed]);
 
   const showToast = useCallback((text: string) => {
     clearTimeout(toastTimer.current);
@@ -136,12 +188,18 @@ export default function SpaceFinder() {
       changed.forEach((i) => map.set(i.id, i));
       return [...map.values()];
     });
-    if (changed.length) saveItems(changed).catch(onStorageError);
-    if (removedIds.length) deleteItems(removedIds).catch(onStorageError);
+    if (changed.length) store.save(changed).catch(onStorageError);
+    if (removedIds.length) store.remove(removedIds).catch(onStorageError);
   }
 
-  const all = items ?? [];
+  const all = (items ?? []).filter((item, _, list) => isVisible(item, list));
   const byId = (id: string | null) => all.find((i) => i.id === id);
+  // Leave a folder that is gone or was hidden (e.g. its access ended).
+  const openId = history[historyIndex];
+  const currentId =
+    openId && pathTo(all, openId)[0]?.parentId === null ? openId : null;
+  const canAdd = !readOnly && canAddTo(currentId);
+  const locked = (item: SpaceItem) => readOnly || isProtected(item);
   const childrenOf = (id: string | null) =>
     all.filter((i) => i.parentId === id);
   const currentFolder = currentId ? (byId(currentId) as FolderItem) : null;
@@ -183,7 +241,9 @@ export default function SpaceFinder() {
     setRenamingId(null);
   }
 
-  function open(item: SpaceItem) {
+  function open(item: SpaceItem, intercept = true) {
+    if (intercept && onOpen?.(item, items ?? [], () => open(item, false)))
+      return;
     if (item.kind === "folder") return navigate(item.id);
     if (canPreview(item.mime)) {
       const url = URL.createObjectURL(item.blob);
@@ -206,6 +266,7 @@ export default function SpaceFinder() {
   // ----- Changes -----
 
   function newFolder() {
+    if (!canAdd) return;
     const siblings = childrenOf(currentId);
     const folder: FolderItem = {
       id: crypto.randomUUID(),
@@ -228,6 +289,11 @@ export default function SpaceFinder() {
     at: { x: number; y: number } | null,
     parentId: string | null = currentId,
   ) {
+    if (readOnly) return;
+    if (!canAddTo(parentId)) {
+      showToast("Files can't be added here");
+      return;
+    }
     const siblings = childrenOf(parentId);
     const created: FileItem[] = [];
     let skipped = 0;
@@ -258,7 +324,7 @@ export default function SpaceFinder() {
       if (parentId === currentId) setSelectedId(created[created.length - 1].id);
     }
     const where =
-      parentId === currentId ? "" : ` to ${byId(parentId)?.name ?? "Space"}`;
+      parentId === currentId ? "" : ` to ${byId(parentId)?.name ?? rootName}`;
     if (skipped) {
       showToast(
         `${skipped} file(s) over ${formatSize(MAX_FILE_BYTES)} were skipped`,
@@ -274,7 +340,7 @@ export default function SpaceFinder() {
     setRenamingId(null);
     const item = byId(id);
     const name = raw.trim();
-    if (!item || !name || name === item.name) return;
+    if (!item || locked(item) || !name || name === item.name) return;
     const siblings = childrenOf(item.parentId).filter((i) => i.id !== id);
     commit([
       { ...item, name: uniqueName(name, siblings), updatedAt: timestamp() },
@@ -289,6 +355,10 @@ export default function SpaceFinder() {
   function moveInto(id: string, folderId: string | null) {
     const item = byId(id);
     if (!item || item.parentId === folderId) return;
+    if (locked(item) || !canAddTo(folderId)) {
+      showToast(`Can't move “${item.name}” there`);
+      return;
+    }
     if (
       item.kind === "folder" &&
       folderId &&
@@ -308,7 +378,7 @@ export default function SpaceFinder() {
       },
     ]);
     setSelectedId(null);
-    showToast(`Moved to ${folderId ? byId(folderId)?.name : "Space"}`);
+    showToast(`Moved to ${folderId ? byId(folderId)?.name : rootName}`);
   }
 
   function saveStyle(folder: FolderItem, style: FolderStyle) {
@@ -335,6 +405,7 @@ export default function SpaceFinder() {
       .filter((i): i is FileItem => i.kind === "file" && ids.includes(i.id))
       .forEach((f) => releaseThumbnail(f.blob));
     commit([], ids);
+    onDeleted?.(ids);
     setDeleting(null);
     setSelectedId(null);
     // Leave a folder that no longer exists.
@@ -363,9 +434,10 @@ export default function SpaceFinder() {
   // ----- Menus -----
 
   function itemMenu(item: SpaceItem): MenuEntry[] {
-    return [
+    const extra = extraItemMenu?.(item) ?? [];
+    const entries: MenuEntry[] = [
       { label: "Open", icon: ExternalLink, onSelect: () => open(item) },
-      ...(item.kind === "file"
+      ...(item.kind === "file" && !readOnly
         ? [
             {
               label: "Download",
@@ -374,6 +446,11 @@ export default function SpaceFinder() {
             },
           ]
         : []),
+      ...(extra.length ? ["separator" as const, ...extra] : []),
+    ];
+    if (locked(item)) return entries;
+    return [
+      ...entries,
       "separator",
       { label: "Rename", icon: Pencil, onSelect: () => setRenamingId(item.id) },
       ...(item.kind === "folder"
@@ -396,11 +473,17 @@ export default function SpaceFinder() {
   }
 
   const canvasMenu: MenuEntry[] = [
-    { label: "New Folder", icon: FolderPlus, onSelect: newFolder },
+    {
+      label: "New Folder",
+      icon: FolderPlus,
+      onSelect: newFolder,
+      disabled: !canAdd,
+    },
     {
       label: "Upload Files…",
       icon: Upload,
       onSelect: () => uploadRef.current?.click(),
+      disabled: !canAdd,
     },
     "separator",
     {
@@ -412,6 +495,7 @@ export default function SpaceFinder() {
   ];
 
   function openMenu(e: React.MouseEvent, item: SpaceItem | null) {
+    if (!item && readOnly) return;
     setMenu({ x: e.clientX, y: e.clientY, item });
   }
   const closeMenu = useCallback(() => setMenu(null), []);
@@ -438,7 +522,7 @@ export default function SpaceFinder() {
         return;
       } else if (e.key === "Enter") {
         e.preventDefault();
-        setRenamingId(selected.id);
+        if (!locked(selected)) setRenamingId(selected.id);
       } else if (
         mod &&
         (e.key === "ArrowDown" || e.key.toLowerCase() === "o")
@@ -446,7 +530,7 @@ export default function SpaceFinder() {
         e.preventDefault();
         open(selected);
       } else if (e.key === "Delete" || (mod && e.key === "Backspace")) {
-        setDeleting(selected);
+        if (!locked(selected)) setDeleting(selected);
       } else if (e.key === "Escape") {
         setSelectedId(null);
       }
@@ -505,7 +589,7 @@ export default function SpaceFinder() {
     <section
       className="relative flex h-full min-h-[480px] overflow-hidden rounded-2xl bg-white"
       onDragOver={(e) => {
-        if (!e.dataTransfer.types.includes("Files")) return;
+        if (readOnly || !e.dataTransfer.types.includes("Files")) return;
         e.preventDefault();
         setFileDragOver(true);
       }}
@@ -513,7 +597,7 @@ export default function SpaceFinder() {
         if (!e.currentTarget.contains(e.relatedTarget as Node))
           setFileDragOver(false);
       }}
-      onDrop={onFileDrop}
+      onDrop={(e) => !readOnly && onFileDrop(e)}
     >
       {/* Sidebar */}
       <aside
@@ -544,8 +628,8 @@ export default function SpaceFinder() {
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            <Orbit className="size-4 text-[#3f5068]" />
-            My Space
+            <RootIcon className="size-4 text-brand" />
+            {rootName}
           </button>
 
           <p className="px-2 pt-4 pb-1 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
@@ -574,7 +658,10 @@ export default function SpaceFinder() {
               </button>
             ))}
         </div>
-        <p className="border-t border-slate-200 px-4 py-3 text-xs text-slate-500">
+        <p
+          hidden={readOnly}
+          className="border-t border-slate-200 px-4 py-3 text-xs text-slate-500"
+        >
           {files.length} file{files.length === 1 ? "" : "s"} ·{" "}
           {formatSize(usedBytes)} used
         </p>
@@ -606,13 +693,15 @@ export default function SpaceFinder() {
             </button>
           </div>
           <h1 className="mr-auto min-w-0 truncate text-base font-semibold text-slate-800">
-            {currentFolder?.name ?? "My Space"}
+            {currentFolder?.name ?? rootName}
           </h1>
+
+          {toolbar}
 
           <div
             role="group"
             aria-label="View"
-            className="flex rounded-lg bg-slate-100 p-0.5"
+            className="flex rounded-lg bg-brand-soft p-0.5"
           >
             {(
               [
@@ -629,7 +718,7 @@ export default function SpaceFinder() {
                 onClick={() => setView(value)}
                 className={`rounded-md p-1 ${
                   view === value
-                    ? "bg-white text-slate-800 shadow-sm"
+                    ? "bg-white text-brand shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -638,24 +727,30 @@ export default function SpaceFinder() {
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={newFolder}
-            className={toolButton}
-            title="New folder (⇧⌘N)"
-          >
-            <FolderPlus className="size-4" />
-            <span className="hidden lg:inline">New Folder</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => uploadRef.current?.click()}
-            className={toolButton}
-            title="Upload files"
-          >
-            <Upload className="size-4" />
-            <span className="hidden lg:inline">Upload</span>
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                type="button"
+                onClick={newFolder}
+                disabled={!canAdd}
+                className={toolButton}
+                title="New folder (⇧⌘N)"
+              >
+                <FolderPlus className="size-4" />
+                <span className="hidden lg:inline">New Folder</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => uploadRef.current?.click()}
+                disabled={!canAdd}
+                className={toolButton}
+                title="Upload files"
+              >
+                <Upload className="size-4" />
+                <span className="hidden lg:inline">Upload</span>
+              </button>
+            </>
+          )}
           <button
             type="button"
             aria-label="Actions for selected item"
@@ -678,7 +773,7 @@ export default function SpaceFinder() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search"
-              aria-label={`Search in ${currentFolder?.name ?? "My Space"}`}
+              aria-label={`Search in ${currentFolder?.name ?? rootName}`}
               className="w-full rounded-md border border-slate-200 bg-slate-50 py-1 pr-2 pl-8 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
             />
           </div>
@@ -694,6 +789,8 @@ export default function SpaceFinder() {
           />
         </div>
 
+        {renderBanner?.(path)}
+
         {view === "icons" ? (
           <IconCanvas
             items={visible}
@@ -701,6 +798,9 @@ export default function SpaceFinder() {
             selectedId={selectedId}
             renamingId={renamingId}
             iconSize={iconSize}
+            readOnly={readOnly}
+            emptyHint={canAdd ? "Drop files here or use Upload" : undefined}
+            renderBadge={renderBadge}
             scrollRef={canvasRef}
             onSelect={setSelectedId}
             onOpen={open}
@@ -715,6 +815,7 @@ export default function SpaceFinder() {
             items={visible}
             selectedId={selectedId}
             renamingId={renamingId}
+            renderBadge={renderBadge}
             onSelect={setSelectedId}
             onOpen={open}
             onRename={rename}
@@ -729,30 +830,28 @@ export default function SpaceFinder() {
             aria-label="Path"
             className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
           >
-            {[{ id: null, name: "My Space" }, ...path].map(
-              (segment, i, list) => (
-                <span
-                  key={segment.id ?? "root"}
-                  className="flex shrink-0 items-center gap-1"
+            {[{ id: null, name: rootName }, ...path].map((segment, i, list) => (
+              <span
+                key={segment.id ?? "root"}
+                className="flex shrink-0 items-center gap-1"
+              >
+                {i > 0 && <ChevronRight className="size-3 text-slate-300" />}
+                <button
+                  type="button"
+                  data-drop-folder={segment.id ?? "root"}
+                  onClick={() => navigate(segment.id)}
+                  aria-current={i === list.length - 1 ? "page" : undefined}
+                  className="flex items-center gap-1 rounded px-1 py-0.5 hover:bg-slate-100 aria-[current=page]:font-medium aria-[current=page]:text-slate-700"
                 >
-                  {i > 0 && <ChevronRight className="size-3 text-slate-300" />}
-                  <button
-                    type="button"
-                    data-drop-folder={segment.id ?? "root"}
-                    onClick={() => navigate(segment.id)}
-                    aria-current={i === list.length - 1 ? "page" : undefined}
-                    className="flex items-center gap-1 rounded px-1 py-0.5 hover:bg-slate-100 aria-[current=page]:font-medium aria-[current=page]:text-slate-700"
-                  >
-                    {segment.id === null ? (
-                      <Orbit className="size-3.5" />
-                    ) : (
-                      <FolderOpen className="size-3.5" />
-                    )}
-                    {segment.name}
-                  </button>
-                </span>
-              ),
-            )}
+                  {segment.id === null ? (
+                    <RootIcon className="size-3.5" />
+                  ) : (
+                    <FolderOpen className="size-3.5" />
+                  )}
+                  {segment.name}
+                </button>
+              </span>
+            ))}
           </nav>
           <span className="shrink-0">
             {visible.length} item{visible.length === 1 ? "" : "s"}
@@ -768,16 +867,16 @@ export default function SpaceFinder() {
               value={iconSize}
               onChange={(e) => setIconSize(Number(e.target.value))}
               aria-label="Icon size"
-              className="hidden w-24 accent-[#3f5068] sm:block"
+              className="hidden w-24 accent-brand sm:block"
             />
           )}
         </div>
       </div>
 
       {fileDragOver && (
-        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center rounded-2xl border-2 border-dashed border-sky-400 bg-sky-50/60">
-          <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow">
-            Drop to add to {currentFolder?.name ?? "My Space"}
+        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center rounded-2xl border-2 border-dashed border-brand-light bg-brand-soft/70">
+          <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-brand shadow">
+            Drop to add to {currentFolder?.name ?? rootName}
           </p>
         </div>
       )}

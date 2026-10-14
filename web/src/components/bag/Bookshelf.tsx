@@ -94,7 +94,7 @@ export default function Bookshelf({
 
       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2.5">
         <h2 className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-slate-800">
-          <LibraryBig className="size-5 shrink-0 text-[#3f5068]" />
+          <LibraryBig className="size-5 shrink-0 text-brand" />
           <span className="truncate">Bookshelf</span>
           <span className="text-xs font-normal text-slate-400">
             {books.length}
@@ -105,7 +105,7 @@ export default function Bookshelf({
           onClick={() => fileRef.current?.click()}
           aria-label="Import books"
           title="Import books"
-          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#3f5068] px-2 py-1.5 text-xs font-medium text-white hover:bg-[#34445a]"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-2 py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
         >
           <BookPlus className="size-4" />
           {/* Label only when the shelf is wide enough. */}
@@ -155,7 +155,7 @@ export default function Bookshelf({
                   <span
                     className={`relative block aspect-[3/4] overflow-hidden rounded-md bg-white shadow-md transition-transform group-hover:-translate-y-0.5 ${
                       active
-                        ? "ring-2 ring-[#3f5068] ring-offset-2 ring-offset-slate-50"
+                        ? "ring-2 ring-brand ring-offset-2 ring-offset-slate-50"
                         : "ring-1 ring-slate-900/5"
                     }`}
                   >
@@ -168,7 +168,7 @@ export default function Bookshelf({
                   </span>
                   <span className="block h-1 w-full overflow-hidden rounded-full bg-slate-200">
                     <span
-                      className="block h-full rounded-full bg-[#3f5068]"
+                      className="block h-full rounded-full bg-brand"
                       style={{ width: `${Math.round(progress * 100)}%` }}
                     />
                   </span>
@@ -200,8 +200,8 @@ export default function Bookshelf({
       </div>
 
       {dragOver && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-sky-400 bg-sky-50/80">
-          <p className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-sky-700 shadow">
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-brand-light bg-brand-soft/80">
+          <p className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-brand shadow">
             Drop to add to your shelf
           </p>
         </div>

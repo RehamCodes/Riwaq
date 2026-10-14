@@ -75,7 +75,7 @@ export default function ToolPalette({
   const button = (active: boolean) =>
     `flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-30 ${
       active
-        ? "bg-[#3f5068] text-white"
+        ? "bg-brand text-white"
         : "text-slate-600 hover:bg-slate-100 disabled:hover:bg-transparent"
     }`;
   const inkTool = tool !== "hand" && tool !== "eraser";

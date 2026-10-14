@@ -34,7 +34,7 @@ export default function RenameInput({
       onBlur={() => onCommit(value)}
       onPointerDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
-      className={`rounded border border-sky-400 bg-white px-1 text-xs text-slate-800 outline-none ring-2 ring-sky-200 ${className}`}
+      className={`rounded border border-brand-light bg-white px-1 text-xs text-slate-800 outline-none ring-2 ring-brand-soft ${className}`}
     />
   );
 }

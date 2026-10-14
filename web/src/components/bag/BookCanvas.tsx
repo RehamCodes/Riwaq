@@ -481,7 +481,7 @@ export default function BookCanvas({
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-200 px-4 py-2.5">
         {headerStart}
         <h1 className="flex min-w-0 flex-1 basis-0 items-center gap-2 text-sm font-semibold text-slate-800">
-          <BookOpen className="size-5 shrink-0 text-[#3f5068]" />
+          <BookOpen className="size-5 shrink-0 text-brand" />
           <span className="truncate">{book.name}</span>
         </h1>
 
@@ -544,7 +544,7 @@ export default function BookCanvas({
           title="Notebook under the book"
           className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors ${
             notebookOpen
-              ? "bg-slate-100 font-medium text-[#3f5068]"
+              ? "bg-brand-soft font-medium text-brand"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
           }`}
         >
@@ -583,7 +583,7 @@ export default function BookCanvas({
             onClick={save}
             disabled={!dirty && !saved.failed}
             title="Save notes (Ctrl+S)"
-            className="flex items-center gap-1.5 rounded-lg bg-[#3f5068] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#34445a] disabled:bg-slate-100 disabled:text-slate-400"
+            className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover disabled:bg-slate-100 disabled:text-slate-400"
           >
             <Save className="size-4" />
             Save

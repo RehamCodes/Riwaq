@@ -68,13 +68,13 @@ function Calendar({ now }: { now: Date }) {
       <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 md:px-5">
         <div className="flex items-center justify-between gap-3">
           <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-            <CalendarDays className="size-5 text-[#3f5068]" />
+            <CalendarDays className="size-5 text-brand" />
             Calendar
           </h1>
           <button
             type="button"
             onClick={() => setDraftStart(nextHalfHour(now))}
-            className="flex items-center gap-1.5 rounded-lg bg-[#3f5068] px-3 py-2 text-sm font-medium text-white hover:bg-[#34445a]"
+            className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover"
           >
             <Plus className="size-4" />
             New class
@@ -117,7 +117,7 @@ function Calendar({ now }: { now: Date }) {
           <div
             role="group"
             aria-label="Calendar view"
-            className="ml-auto flex rounded-lg bg-slate-100 p-0.5"
+            className="ml-auto flex rounded-lg bg-brand-soft p-0.5"
           >
             {views.map((v) => (
               <button
@@ -127,7 +127,7 @@ function Calendar({ now }: { now: Date }) {
                 onClick={() => setView(v.value)}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium md:text-sm ${
                   view === v.value
-                    ? "bg-white text-slate-800 shadow-sm"
+                    ? "bg-white text-brand shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >

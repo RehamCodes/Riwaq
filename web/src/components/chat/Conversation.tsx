@@ -75,7 +75,7 @@ function MessageText({ text, query }: { text: string; query: string }) {
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className="break-all text-sky-700 underline"
+            className="break-all text-brand underline"
           >
             {highlight(part, query)}
           </a>
@@ -344,7 +344,7 @@ export default function Conversation({
               onClick={() => setTab(t.value)}
               className={`border-b-2 px-3 pb-2.5 text-sm font-medium ${
                 tab === t.value
-                  ? "border-[#3f5068] text-slate-800"
+                  ? "border-brand text-slate-800"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -494,7 +494,7 @@ export default function Conversation({
               type="submit"
               disabled={!draft.trim()}
               aria-label="Send"
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#3f5068] text-white hover:bg-[#34445a] disabled:opacity-40"
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-hover disabled:opacity-40"
             >
               <SendHorizontal className="size-4" />
             </button>
@@ -615,7 +615,7 @@ function MessageList({
                 )}
                 <p
                   className={`rounded-lg px-3 py-2 text-sm whitespace-pre-wrap text-slate-800 ${
-                    mine ? "bg-[#e3e9f2]" : "bg-slate-100"
+                    mine ? "bg-brand-soft" : "bg-slate-100"
                   } ${activeId === m.id ? "ring-2 ring-amber-400" : ""}`}
                 >
                   <MessageText text={m.text} query={query} />
@@ -672,7 +672,7 @@ function SharedPanel({ chat }: { chat: Chat }) {
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block truncate text-sm font-medium text-sky-700 hover:underline"
+                  className="block truncate text-sm font-medium text-brand hover:underline"
                 >
                   {l.url}
                 </a>
