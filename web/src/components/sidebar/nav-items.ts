@@ -24,7 +24,7 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   // Overview
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Space", href: "/space", icon: Orbit },
   // Live learning
   { label: "Classes", href: "/classes", icon: Library },
