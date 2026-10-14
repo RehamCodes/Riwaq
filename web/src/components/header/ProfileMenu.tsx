@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, LogOut, MessageSquare, Pencil } from "lucide-react";
 import Avatar, {
   availabilityOptions,
@@ -238,13 +239,13 @@ export default function ProfileMenu({
             </div>
 
             <div className="border-t border-slate-100 p-2">
-              <button
-                type="button"
+              <Link
+                href="/"
                 className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-slate-600 hover:bg-slate-100"
               >
                 <LogOut className="size-4" />
                 Sign out
-              </button>
+              </Link>
             </div>
           </div>
         </div>

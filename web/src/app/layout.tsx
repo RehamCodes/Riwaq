@@ -1,8 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import Sidebar from "@/components/sidebar/Sidebar";
-import Header from "@/components/header/Header";
-import BottomNav from "@/components/sidebar/BottomNav";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,20 +13,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      {/* App shell: the page itself never scrolls, only <main> does,
-          so the sidebar and top bar stay fixed in place. */}
-      <body className="flex h-dvh overflow-hidden bg-slate-100">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="p-3 pb-6 md:pl-0">
-            <Header />
-          </div>
-          <main className="flex-1 overflow-y-auto px-3 pb-24 md:pb-3 md:pl-0">
-            {children}
-          </main>
-        </div>
-        <BottomNav />
-      </body>
+      <body className="h-dvh bg-slate-100">{children}</body>
     </html>
   );
 }
