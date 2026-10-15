@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import StudentsSheet from "@/components/students/StudentsSheet";
 
 export const metadata: Metadata = {
   title: "Students",
 };
 
 export default function StudentsPage() {
-  return <h1 className="text-2xl font-semibold text-slate-700">Students</h1>;
+  return <StudentsSheet />;
 }

@@ -40,7 +40,7 @@ export default function AttendanceDashboard() {
         title="Teacher Attendance"
         icon={Presentation}
         value={summary.attendance.teachers}
-        href="/teachers"
+        href="/attendance/teachers"
         color={ACCENT_ALT}
       />
       <StatCard

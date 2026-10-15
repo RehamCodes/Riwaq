@@ -10,7 +10,7 @@ import {
   Lock,
   Timer,
 } from "lucide-react";
-import { Button, Modal, ModalHeader } from "@/components/ui";
+import { Button, Modal, ModalHeader, Select } from "@/components/ui";
 import SpaceFinder from "@/components/space/SpaceFinder";
 import { itemStore } from "@/components/space/space-db";
 import type { FileItem, FolderItem, SpaceItem } from "@/components/space/types";
@@ -354,28 +354,29 @@ export default function ExamsFinder() {
         renderBadge={renderBadge}
         renderBanner={renderBanner}
         toolbar={
-          <label className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="hidden sm:inline">View as</span>
-            <select
+            <Select
+              label="View as"
               value={viewer}
-              onChange={(e) => {
-                setViewer(e.target.value);
+              onChange={(value) => {
+                setViewer(value);
                 setSession(null);
                 setViewing(null);
                 setGate(null);
               }}
-              className="rounded-md border border-slate-200 bg-slate-50 py-1 pr-1 pl-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none"
-            >
-              <option value={TEACHER}>Teacher</option>
-              <optgroup label="Preview as student">
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </label>
+              options={[
+                { value: TEACHER, label: "Teacher" },
+                {
+                  label: "Preview as student",
+                  options: students.map((s) => ({
+                    value: s.id,
+                    label: s.name,
+                  })),
+                },
+              ]}
+            />
+          </div>
         }
       />
 
