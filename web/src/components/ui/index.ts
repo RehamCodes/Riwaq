@@ -6,3 +6,4 @@ export { ContextMenu, type MenuEntry } from "./ContextMenu";
 export { DateInput, Input, TimeInput } from "./Input";
 export { CloseButton, Modal, ModalHeader } from "./Modal";
 export { ResizeHandle } from "./ResizeHandle";
+export { Select, type SelectGroup, type SelectOption } from "./Select";

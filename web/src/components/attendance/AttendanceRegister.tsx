@@ -30,14 +30,47 @@ import {
   classes,
   isSchoolDay,
   recordFor,
-  roster,
   statuses,
+  students,
+  subjects,
+  teachers,
   type AttendanceRecord,
-  type RegisterStudent,
+  type RegisterPerson,
   type Status,
 } from "./register-data";
 
 type View = "day" | "week";
+
+export type RegisterKind = "students" | "teachers";
+
+const registers: Record<
+  RegisterKind,
+  {
+    title: string;
+    roster: RegisterPerson[];
+    groups: string[];
+    groupLabel: string;
+    allGroups: string;
+    groupOption: (group: string) => string;
+  }
+> = {
+  students: {
+    title: "Student attendance",
+    roster: students,
+    groups: classes,
+    groupLabel: "Class",
+    allGroups: "All classes",
+    groupOption: (c) => `Class ${c}`,
+  },
+  teachers: {
+    title: "Teacher attendance",
+    roster: teachers,
+    groups: subjects,
+    groupLabel: "Subject",
+    allGroups: "All subjects",
+    groupOption: (s) => s,
+  },
+};
 
 const PER_PAGE = 20;
 
@@ -130,12 +163,18 @@ function StatusChip({ status }: { status: Status }) {
   );
 }
 
-export default function AttendanceRegister() {
+export default function AttendanceRegister({
+  kind = "students",
+}: {
+  kind?: RegisterKind;
+}) {
+  const { title, roster, groups, groupLabel, allGroups, groupOption } =
+    registers[kind];
   const now = useNow();
   const [view, setView] = useState<View>("week");
   // null = follow today.
   const [picked, setPicked] = useState<Date | null>(null);
-  const [className, setClassName] = useState("all");
+  const [group, setGroup] = useState("all");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
@@ -175,7 +214,7 @@ export default function AttendanceRegister() {
   const q = query.trim().toLowerCase();
   const rows = roster.filter(
     (s) =>
-      (className === "all" || s.className === className) &&
+      (group === "all" || s.group === group) &&
       (!q || s.name.toLowerCase().includes(q)) &&
       (statusFilter === "all" ||
         records.get(s.id)!.some((r) => r?.status === statusFilter)),
@@ -200,7 +239,7 @@ export default function AttendanceRegister() {
     const cell = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const header = [
       "Name",
-      "Class",
+      groupLabel,
       ...days.map(toDateInputValue),
       ...(view === "day" ? ["Arrival"] : []),
     ];
@@ -208,7 +247,7 @@ export default function AttendanceRegister() {
       const recs = records.get(s.id)!;
       return [
         s.name,
-        s.className,
+        s.group,
         ...recs.map((r) => (r ? statusStyles[r.status].label : "")),
         ...(view === "day" ? [recs[0]?.arrival ?? ""] : []),
       ];
@@ -219,7 +258,7 @@ export default function AttendanceRegister() {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `attendance-${view}-${toDateInputValue(days[0])}.csv`;
+    a.download = `${kind}-attendance-${view}-${toDateInputValue(days[0])}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
@@ -247,7 +286,7 @@ export default function AttendanceRegister() {
 
         <div className="mt-3 flex items-end justify-between gap-4 border-b border-slate-200">
           <h1 className="pb-3 text-xl font-semibold text-slate-800">
-            Attendance
+            {title}
           </h1>
           <div role="tablist" aria-label="Period" className="flex gap-6">
             {(["day", "week"] as const).map((v) => (
@@ -325,18 +364,18 @@ export default function AttendanceRegister() {
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <select
-              value={className}
+              value={group}
               onChange={(e) => {
-                setClassName(e.target.value);
+                setGroup(e.target.value);
                 setPage(0);
               }}
-              aria-label="Class"
+              aria-label={groupLabel}
               className={control}
             >
-              <option value="all">All classes</option>
-              {classes.map((c) => (
-                <option key={c} value={c}>
-                  Class {c}
+              <option value="all">{allGroups}</option>
+              {groups.map((g) => (
+                <option key={g} value={g}>
+                  {groupOption(g)}
                 </option>
               ))}
             </select>
@@ -365,8 +404,8 @@ export default function AttendanceRegister() {
                   setQuery(e.target.value);
                   setPage(0);
                 }}
-                placeholder="Search students"
-                aria-label="Search students"
+                placeholder={`Search ${kind}`}
+                aria-label={`Search ${kind}`}
                 className={`${control} w-44 pl-8`}
               />
             </div>
@@ -427,7 +466,9 @@ export default function AttendanceRegister() {
               >
                 Name
               </th>
-              <th className={`${headCell} pr-4 font-medium`}>Class</th>
+              <th className={`${headCell} pr-4 font-medium`}>
+                {groupLabel}
+              </th>
               {view === "week" ? (
                 <>
                   {days.map((d) => (
@@ -459,7 +500,7 @@ export default function AttendanceRegister() {
             {pageRows.map((s) => (
               <Row
                 key={s.id}
-                student={s}
+                person={s}
                 records={records.get(s.id)!}
                 view={view}
               />
@@ -468,7 +509,7 @@ export default function AttendanceRegister() {
         </table>
         {rows.length === 0 && (
           <p className="py-12 text-center text-sm text-slate-400">
-            No students match these filters
+            No {kind} match these filters
           </p>
         )}
       </div>
@@ -480,6 +521,7 @@ export default function AttendanceRegister() {
           from={current * PER_PAGE + 1}
           to={current * PER_PAGE + pageRows.length}
           total={rows.length}
+          noun={kind}
           onPage={(p) => {
             setPage(p);
             listRef.current?.scrollTo({ top: 0 });
@@ -491,11 +533,11 @@ export default function AttendanceRegister() {
 }
 
 function Row({
-  student,
+  person,
   records,
   view,
 }: {
-  student: RegisterStudent;
+  person: RegisterPerson;
   records: (AttendanceRecord | null)[];
   view: View;
 }) {
@@ -507,9 +549,9 @@ function Row({
   return (
     <tr className="h-11 border-b border-slate-100 hover:bg-slate-50/70">
       <td className="sticky left-0 bg-white py-0 pr-4 text-slate-700">
-        {student.name}
+        {person.name}
       </td>
-      <td className="py-0 pr-4 text-slate-500">{student.className}</td>
+      <td className="py-0 pr-4 text-slate-500">{person.group}</td>
       {view === "week" ? (
         <>
           {records.map((r, i) => (
@@ -545,6 +587,7 @@ function Pagination({
   from,
   to,
   total,
+  noun,
   onPage,
 }: {
   page: number;
@@ -552,6 +595,7 @@ function Pagination({
   from: number;
   to: number;
   total: number;
+  noun: string;
   onPage: (page: number) => void;
 }) {
   const button =
@@ -562,7 +606,7 @@ function Pagination({
       className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-200 pt-3"
     >
       <p className="mr-auto text-xs text-slate-500 tabular-nums">
-        {from}–{to} of {total} students
+        {from}–{to} of {total} {noun}
       </p>
       <button
         type="button"
